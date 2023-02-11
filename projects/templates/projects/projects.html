@@ -1,0 +1,28 @@
+{% extends "main.html" %}
+
+{% block content %}
+<h2>Hello!</h2>
+<p>Welcome to the main projects home page.</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for project in projects %}
+        <tr>
+            <td>{{project.id}}</td>
+            <td>{% if project.topRated %} <strong>TOP</strong> {% endif %} {{project.title}}</td>
+            <td>{{project.description}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p>This is a testing page...</p>
+{% endblock content %}
