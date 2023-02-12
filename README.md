@@ -225,6 +225,75 @@
 
 ## Admin Panel, Models & Database Queries
 
+The aim here is to build the DB, manage interactions and design queries.
+
+1. Use the default SQLite database, before creating models or using the Admin panel we need to migrate all changes
+
+   ```shell
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+
+1. Create superuser account for the administration of the application
+
+   ```shell
+   python manage.py createsuperuser
+   ```
+
+   We can now access the admin panel using the chosen username and password
+
+   !["Django Admin Panel"](./assets/django_admin.png "Django Admin Panel")
+
+   Now if you access successfully to the Django Admin interface you'll see the following dashboard
+
+   !["Django Admin Dashboard"](./assets/django_admin_dashboard.png "Django Admin Dashboard")
+
+1. Create our own Models by adding our DB tables to the `models.py` within the application directory
+
+   ```python
+    from django.db import models
+    import uuid
+
+    class Project(models.Model):
+        # owner = WILL BE COMPLETED LATER
+        title = models.CharField(max_length=200)
+        description = models.TextField(null=True, blank=True)
+        # feature_image = WILL BE COMPLETED LATER
+        demo_link = models.CharField(max_length=1000, null=True, blank=True)
+        source_link = models.CharField(max_length=1000, null=True, blank=True)
+        vote_total = models.IntegerField(default=0)
+        vote_ratio = models.IntegerField(default=0)
+        created = models.DateTimeField(auto_now_add=True)
+        id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+        def __str__(self):
+            return self.title
+   ```
+
+1. Make new migration to update the DB with the new model just created
+
+   ```shell
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+
+1. Register the model within the admin panel to be visible in the admin interface, therefore, we need to update the `admin.py` file of the application as following
+
+   ```python
+   from django.contrib import admin
+
+   # Register your models here.
+   from .models import Project
+
+   admin.site.register(Project)
+   ```
+
+   Now we can see our Model inside the Admin panel
+
+   !["Django Admin Model"](./assets/django_admin_model.png "Django Admin Model")
+
+1. Now models can be used within the `view.py` file
+
 ## Models Forms & CRUD
 
 ## Static Files & Theme Installation

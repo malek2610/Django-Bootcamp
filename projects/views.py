@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
+from .models import Project
+
 projectsList = [
     {
         "id": "1",
@@ -22,15 +24,24 @@ projectsList = [
 ]
 
 def projects(request):
-    context = {"projects": projectsList}
+    projects = Project.objects.all()
+    context = {"projects": projects}
+
+    # context = {"projects": projectsList}
 
     return render(request, "projects/projects.html", context)
 
 def project(request, pk):
-    projectObject = None
+    # projectObject = None
 
-    for i in projectsList:
-        if i['id'] == str(pk):
-            projectObject = i
+    # for i in projectsList:
+    #     if i['id'] == str(pk):
+    #         projectObject = i
 
-    return render(request, "projects/project.html", {"project": projectObject})
+    projectObj = Project.objects.get(id=pk)
+    tags = projectObj.tags.all()
+    reviews = projectObj.review_set.all()
+
+    context = {"project": projectObj, "tags": tags, "reviews": reviews}
+
+    return render(request, "projects/project.html", context)
