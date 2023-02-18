@@ -298,7 +298,7 @@ The aim here is to build the DB, manage interactions and design queries.
 
 Two ways are possible under django to deal with CRUD (i) function based views or (ii) class based views. The class based views is the easiest way, however, here we will be using the function based view to see the complete flow of the views.
 
-### 1. Model Forms
+### Model Forms
 
 1. We start by creating `form.py` file inside the `projects` directory
 
@@ -371,18 +371,112 @@ Two ways are possible under django to deal with CRUD (i) function based views or
 
    !["Create a New Project Form"](./assets/project_create_form.png "Create a New Project Form")
 
-### 1. CRUD Functionality
+### CRUD Functionalities
+
+1. Create - Under `view.py` we have to add the following code within the `createProject` method. The `redirect` was also imported for this method
+
+   ```python
+   def createProject(request):
+      form = ProjectForm()
+
+      if request.method == "POST":
+         form = ProjectForm(request.POST)
+
+         if form.is_valid():
+               form.save()
+               return redirect("projects")
+
+      context = {"form": form}
+
+      return render(request, "projects/project-form.html", context)
+   ```
+
+1. Update - We will create new method `updateProject` within the `views.py` file which is similar to the `createProject`
+
+   ```python
+   def updateProject(request, pk):
+      project = Project.objects.get(id=pk)
+
+      form = ProjectForm(instance=project)
+
+      if request.method == "POST":
+         form = ProjectForm(request.POST, instance=project)
+
+         if form.is_valid():
+               form.save()
+               return redirect("projects")
+
+      context = {"form": form}
+      return render(request, "projects/project-form.html", context)
+   ```
+
+   We need to update the `urls.py` too
+
+   ```python
+   from django.urls import path
+
+   from . import views
+
+   urlpatterns = [
+      path("", views.projects, name="projects"),
+      path("project/<str:pk>/", views.project, name="project"),
+      path("create-project/", views.createProject, name="create-project"),
+      path("update-project/<str:pk>/", views.updateProject, name="update-project"),
+   ]
+   ```
+
+1. Delete - We start by creating a validation template `delete.html`
+
+   ```html
+   {% extends "main.html" %} {% block content %}
+
+   <h2>Delete {{ object }}:</h2>
+
+   <form action="" method="POST">
+     {% csrf_token %}
+
+     <p>Are you sure you want to delete {{object}}?</p>
+     <a href="{% url 'projects' %}">Go Back!</a>
+     <input type="submit" value="Delete" />
+   </form>
+
+   {% endblock content %}
+   ```
+
+   Then we create the `deleteProject` method inside the `views.py` file
+
+   ```python
+   def deleteProject(request, pk):
+      project = Project.objects.get(id=pk)
+
+      if request.method == "POST":
+         project.delete()
+         return redirect("projects")
+
+      return render(request, "projects/delete.html", {"object":project})
+   ```
+
+   We need to update the `urls.py` too
+
+   ```python
+   from django.urls import path
+
+   from . import views
+
+   urlpatterns = [
+      path("", views.projects, name="projects"),
+      path("project/<str:pk>/", views.project, name="project"),
+      path("create-project/", views.createProject, name="create-project"),
+      path("update-project/<str:pk>/", views.updateProject, name="update-project"),
+      path("delete-project/<str:pk>/", views.deleteProject, name="delete-project"),
+   ]
+   ```
 
 ## Static Files & Theme Installation
 
 ## Requirements
 
 ```
-
 - Django==4.1.6
-
-```
-
-```
 
 ```
