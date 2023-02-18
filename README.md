@@ -294,12 +294,95 @@ The aim here is to build the DB, manage interactions and design queries.
 
 1. Now models can be used within the `view.py` file
 
-## Models Forms & CRUD
+## Models Forms & CRUD (Create Read Update Delete)
+
+Two ways are possible under django to deal with CRUD (i) function based views or (ii) class based views. The class based views is the easiest way, however, here we will be using the function based view to see the complete flow of the views.
+
+### 1. Model Forms
+
+1. We start by creating `form.py` file inside the `projects` directory
+
+   ```python
+   from django.forms import ModelForm
+   from .models import Project
+
+   class ProjectForm(ModelForm):
+       class Meta:
+           model = Project
+           fields = "__all__"
+   ```
+
+1. We can import now the created form inside the `views.py`
+
+   ```python
+   from .forms import ProjectForm
+   ```
+
+1. The next step is to render the created model. We start by adding a `create project` on the navbar
+
+   ```html
+   <h1>Logo</h1>
+
+   <a href="/">Home</a>
+   <a href="{% url 'create-project' %}">Add Project</a>
+
+   <hr />
+   ```
+
+1. Then, we create a new function view under the `views.py`
+
+   ```python
+   def createProject(request):
+       form = ProjectForm()
+       context = {"form": form}
+       exclude = ["vote_total", "vote_ratio"]
+
+       return render(request, "projects/project-form.html", context)
+   ```
+
+1. Next step consists of creating the `project-form.html` template
+
+   ```html
+   {% extends "main.html" %} {% block content %}
+
+   <h2>Create new project:</h2>
+
+   <form method="POST" action="">
+     {% csrf_token %} {{form.as_p}}
+     <input type="submit" value="Submit" />
+   </form>
+
+   {% endblock content %}
+   ```
+
+1. Finally, we need to update the `urls.py` file inside the `projects` directory
+
+   ```python
+   from django.urls import path
+
+   from . import views
+
+   urlpatterns = [
+       path("", views.projects, name="projects"),
+       path("project/<str:pk>/", views.project, name="project"),
+       path("create-project/", views.createProject, name="create-project"),
+   ]
+   ```
+
+   !["Create a New Project Form"](./assets/project_create_form.png "Create a New Project Form")
+
+### 1. CRUD Functionality
 
 ## Static Files & Theme Installation
 
 ## Requirements
 
 ```
+
 - Django==4.1.6
+
+```
+
+```
+
 ```
