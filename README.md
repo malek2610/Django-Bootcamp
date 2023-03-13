@@ -474,9 +474,159 @@ Two ways are possible under django to deal with CRUD (i) function based views or
 
 ## Static Files & Theme Installation
 
+The way we will be using static files here, is by keeping them ona separate `static` directory within the root folder.
+
+1. Create a `static` directory inside the project root folder
+
+   ```
+   .
+   ├── assets
+   ├── devsearchlive
+   │   └── __pycache__
+   ├── projects
+   │   ├── migrations
+   │   │   └── __pycache__
+   │   ├── __pycache__
+   │   └── templates
+   │       └── projects
+   ├── static
+   └── templates
+   ```
+
+1. Connect the static files/folders with the main `settings.py` file by adding the following commands
+
+   ```python
+   STATICFILES_DIRS = [
+      # BASE_DIR / "static"
+      os.path.join(BASE_DIR, "static"),
+   ]
+   ```
+
+1. We need to load the static files inside the main template
+
+   ```html
+   <!DOCTYPE html>
+   <html lang="en">
+     {% load static %}
+
+     <head>
+       <meta charset="UTF-8" />
+       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+       <title>Dev. Search Live</title>
+
+       <link
+         rel="stylesheet"
+         type="text/css"
+         href="{% static 'styles/main.css' %}"
+       />
+     </head>
+
+     <body>
+       {% include "navbar.html" %} {% block content %} {% endblock content %}
+     </body>
+   </html>
+   ```
+
+1. Now, we can update our model to be able using the profiles pictures
+
+   ```python
+   class Project(models.Model):
+      # owner =
+      title = models.CharField(max_length=200)
+      description = models.TextField(null=True, blank=True)
+      feature_image = models.ImageField(null=True, blank=True, default="default.jpg")
+      demo_link = models.CharField(max_length=1000, null=True, blank=True)
+      source_link = models.CharField(max_length=1000, null=True, blank=True)
+      vote_total = models.IntegerField(default=0)
+      vote_ratio = models.IntegerField(default=0)
+      tags = models.ManyToManyField("Tag", blank=True)
+      created = models.DateTimeField(auto_now_add=True)
+      id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+      def __str__(self):
+         return self.title
+   ```
+
+1. To avoid Django uploading images within the root directory, we can change the `media` settings, and we need to add a `MEDIA_URL` too
+
+   ```python
+   MEDIA_URL = "/images/"
+   MEDIA_ROOT = os.path.join(BASE_DIR, "static/images")
+   ```
+
+1. We can update the main `urls.py` as following
+
+   ```python
+   from django.conf import settings
+   from django.conf.urls.static import static
+
+   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+   ```
+
+1. The images are accessible now via the html templates, for a single project, we can modify the `project.html` as shown bellow:
+
+   ```html
+   <img
+     style="max-width: 500px;"
+     src="{{project.feature_image.url}}"
+     alt="Project image"
+   />
+   ```
+
+1. The following modifications are needed to be able uploading images using our form instead of the admin dashboard
+
+   - The `project-form.html` file will be updated as following:
+
+     ```html
+     {% extends "main.html" %} {% block content %}
+
+     <h2>Create new project:</h2>
+
+     <form method="POST" action="" enctype="multipart/form-data">
+       {% csrf_token %} {{form.as_p}}
+       <input type="submit" value="Submit" />
+     </form>
+
+     {% endblock content %}
+     ```
+
+   - The `views.py` also will be updated
+
+     ```python
+     def createProject(request):
+        form = ProjectForm()
+
+        if request.method == "POST":
+           form = ProjectForm(request.POST, request.FILES)
+
+           if form.is_valid():
+                 form.save()
+                 return redirect("projects")
+
+        context = {"form": form}
+
+        return render(request, "projects/project-form.html", context)
+
+     def updateProject(request, pk):
+        project = Project.objects.get(id=pk)
+
+        form = ProjectForm(instance=project)
+
+        if request.method == "POST":
+           form = ProjectForm(request.POST, request.FILES, instance=project)
+
+           if form.is_valid():
+                 form.save()
+                 return redirect("projects")
+
+        context = {"form": form}
+        return render(request, "projects/project-form.html", context)
+     ```
+
 ## Requirements
 
 ```
 - Django==4.1.6
-
+- Pillow==9.4.0
 ```
